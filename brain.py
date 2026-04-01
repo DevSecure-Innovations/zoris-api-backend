@@ -17,7 +17,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # this key is hardcoded for development purposes only.
-GENAI_API_KEY = "AIzaSyDDnUv9L_lNhTGlgDjOgB57SZAPvon2ztU"
+GENAI_API_KEY = "AIzaSyDDnUv9L_lNhTGlgDjOgB57SZAPvon2ztU" # Replace with your actual API key in production and secure it properly.
 genai.configure(api_key=GENAI_API_KEY)
 
 model = genai.GenerativeModel('gemini-2.5-flash')
