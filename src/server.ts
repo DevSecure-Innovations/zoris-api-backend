@@ -15,7 +15,11 @@ const app = express();
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
-app.post('/webhook', webhookRouter);
+app.use('/webhook', webhookRouter);
+
+app.get('/health', (req, res) => {
+    res.status(200).send('Alive');
+});
 
 app.use(errorHandler);
 
