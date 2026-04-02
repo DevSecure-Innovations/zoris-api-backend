@@ -1,33 +1,25 @@
-import "dotenv/config";
-import express from "express";
-import type { 
-	Request, 
-	Response,  
-} from "express";
-import pubsubRouter from "./routes/pubsub.route";
-import detectionRouter from "./routes/detection.route";
+import express from 'express';
+/* DESC: Import dotenv, this will inject environment variables
+ * without file specific imports 
+ * TODO: Remove any dotenv imports from other files, if you notice any
+ */
+import 'dotenv/config';
 
-const PORT = process.env.PORT || 5000;
+import authRouter from './modules/auth/auth.routes';
+import webhookRouter from './modules/webhook/webhook.routes';
+import { errorHandler } from './middlewares/global.errorHandler';
+
+const PORT = process.env.PORT || 3000;
 const app = express();
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json());
 
-app.get("/", (_req: Request, res: Response) => {
-	res.send("Phishing API backend is running.");
-});
+app.use('/api/auth', authRouter);
+app.post('/webhook', webhookRouter);
 
-app.get("/health", (_req: Request, res: Response) => {
-	res.json({ ok: true });
-});
-
-app.use("/pubsub", pubsubRouter);
-app.use("/detect", detectionRouter);
-
-app.use((err: unknown, _req: Request, res: Response, _next: unknown) => {
-	console.error(err);
-	res.status(500).json({ ok: false, error: "Internal server error" });
-});
+app.use(errorHandler);
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+	console.log(`backend running on http://localhost:${PORT}`);
+	console.log('ready for React Native to connect gmail');
 });
