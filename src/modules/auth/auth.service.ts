@@ -19,6 +19,8 @@ if (!REDIRECT_URI) throw new Error('Missing GOOGLE_REDIRECT_URI');
  * TODO: Store in DB
  */
 const tokenStore = new Map<string, UserTokens>();
+const emailToUserIdStore = new Map<string, string>();
+const lastHistoryIdStore = new Map<string, string>();
 
 
 /* DESC: Handles OAuth flow, returns auth url
@@ -84,6 +86,13 @@ export async function handleCallback(data: CallbackBody) {
 		expiryDate: tokens.expiry_date ?? existing?.expiryDate,
 	});
 
+	// Resolve the authenticated Gmail address so webhook events can map to this user.
+	const gmail = google.gmail({ version: 'v1', auth: client });
+	const profile = await gmail.users.getProfile({ userId: 'me' });
+	const emailAddress = profile.data.emailAddress;
+	if (!emailAddress) throw new AppError('Failed to resolve Gmail address', 500);
+	emailToUserIdStore.set(emailAddress.toLowerCase(), userId);
+
 	// Setup Gmail watch (non-blocking)
 	try {
 		await setupGmailWatch(client);
@@ -103,4 +112,22 @@ export async function handleCallback(data: CallbackBody) {
  */
 export function getTokens(userId: string) {
 	return tokenStore.get(userId);
+}
+
+/* DESC: Resolves app user id by Gmail address
+ */
+export function getUserIdByEmail(emailAddress: string) {
+	return emailToUserIdStore.get(emailAddress.toLowerCase());
+}
+
+/* DESC: Returns the last processed Gmail history id for user
+ */
+export function getLastHistoryId(userId: string) {
+	return lastHistoryIdStore.get(userId);
+}
+
+/* DESC: Sets the last processed Gmail history id for user
+ */
+export function setLastHistoryId(userId: string, historyId: string | number) {
+	lastHistoryIdStore.set(userId, String(historyId));
 }

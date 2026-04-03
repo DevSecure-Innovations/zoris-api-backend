@@ -3,7 +3,12 @@ import type {
 } from '../../types/google';
 import { gmail, oauth2Client } from '../../config/google';
 import { analyzeEmail } from '../../utils/analyzer';
-import { getTokens } from '../auth/auth.service';
+import {
+	getLastHistoryId,
+	getTokens,
+	getUserIdByEmail,
+	setLastHistoryId,
+} from '../auth/auth.service';
 import AppError from '../../utils/appError';
 
 /* DESC: Handles Gmail webhook events 
@@ -11,13 +16,16 @@ import AppError from '../../utils/appError';
 export async function gmailWebhook(message: PubSubMessage) {
 	if (!message.data) throw new AppError('No data', 400);
 	const parsedData = JSON.parse(Buffer.from(message.data, 'base64').toString()) as {
+		emailAddress?: string;
 		historyId?: string | number;
 	};
 
-	const { historyId } = parsedData;
+	const { emailAddress, historyId } = parsedData;
+	if (!emailAddress) throw new AppError('No emailAddress', 400);
 	if (!historyId) throw new AppError('No historyId', 400);
 
-	const userId = 'test-user'; 
+	const userId = getUserIdByEmail(emailAddress);
+	if (!userId) throw new AppError('No user mapped for email address', 401);
 
 	const tokens = getTokens(userId);
 	if (!tokens) throw new AppError('No tokens', 401);
@@ -29,9 +37,17 @@ export async function gmailWebhook(message: PubSubMessage) {
 	});
 
 
+	const previousHistoryId = getLastHistoryId(userId);
+
+	// First webhook for a user initializes the cursor, next events fetch deltas.
+	if (!previousHistoryId) {
+		setLastHistoryId(userId, historyId);
+		return;
+	}
+
 	const history = await gmail.users.history.list({
 		userId: 'me',
-		startHistoryId: String(historyId),
+		startHistoryId: previousHistoryId,
 	});
 
 	const messages = history.data.history?.flatMap(h => h.messagesAdded || []) || [];
@@ -59,4 +75,6 @@ export async function gmailWebhook(message: PubSubMessage) {
 
 		}
 	}
+
+	setLastHistoryId(userId, historyId);
 }

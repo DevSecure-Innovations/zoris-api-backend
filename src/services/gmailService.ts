@@ -22,7 +22,8 @@ export async function setupGmailWatch(client: OAuth2Client) {
 		userId: 'me',
 		requestBody: {
 			topicName: `projects/${GCP_PROJECT_ID}/topics/gmail-notifications`,
-			labelIds: ['INBOX'],
+			labelIds: ['INBOX','SPAM',],
+			labelFilterBehavior: "INCLUDE"
 		},
 	});
 
