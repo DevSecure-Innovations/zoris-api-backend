@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const StartAuthBodySchema = z.object({
-    userId: z.string().optional(),
+    userId: z.string(),
 });
 
 export const CallbackBodySchema = z.object({
-    code: z.string().optional(),
-    userId: z.string().optional(),
+    code: z.string(),
+    userId: z.string(),
 });
 
 export type StartAuthBody = z.infer<typeof StartAuthBodySchema>;
