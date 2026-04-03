@@ -1,3 +1,4 @@
+import { google } from 'googleapis';
 import { oauth2Client } from "../../config/google";
 import type { 
 	CallbackBody, 
@@ -7,6 +8,13 @@ import type { UserTokens } from '../../types/user';
 import { setupGmailWatch } from '../../services/gmailService';
 import AppError from "../../utils/appError";
 
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+
+if (!CLIENT_SECRET) throw new Error('Missing GOOGLE_CLIENT_SECRET');
+if (!CLIENT_ID) throw new Error('Missing GOOGLE_CLIENT_ID');
+if (!REDIRECT_URI) throw new Error('Missing GOOGLE_REDIRECT_URI');
 /* DESC: Stores user tokens locally
  * TODO: Store in DB
  */
@@ -31,29 +39,64 @@ export async function startAuth(data: StartAuthBody) {
 
 /* DESC: Handles OAuth callback
  */
+
 export async function handleCallback(data: CallbackBody) {
 	if (!data.code) throw new AppError('code is required', 400);
 	if (!data.userId) throw new AppError('userId is required', 400);
 
 	const { code, userId } = data;
 
-	// get tokens, if code and userId are valid
-	const { tokens } = await oauth2Client.getToken(code);
-	if (!tokens.access_token) throw new AppError('Missing OAuth tokens from Google', 401);
-	if (!tokens.refresh_token) throw new AppError('Missing OAuth tokens from Google', 401);
+	const client = new google.auth.OAuth2(
+		CLIENT_ID,
+		CLIENT_SECRET,
+		REDIRECT_URI
+	);
 
-	const accessToken = tokens.access_token;
-	const refreshToken = tokens.refresh_token ?? tokenStore.get(userId)?.refreshToken;
+	let tokens;
 
-	// store tokens locally
-	tokenStore.set(userId,{
-		accessToken,
-		refreshToken,
-		expiryDate: tokens.expiry_date ?? undefined,
+	try {
+		const res = await client.getToken(code);
+		tokens = res.tokens;
+	} catch (err: any) {
+		console.error('OAuth token exchange failed:', err?.response?.data || err);
+		throw new AppError('Invalid or expired authorization code', 401);
+	}
+
+	if (!tokens?.access_token) throw new AppError('Missing access token from Google', 401);
+
+	const existing = tokenStore.get(userId);
+
+	const refreshToken = tokens.refresh_token ?? existing?.refreshToken;
+
+	if (!refreshToken) throw new AppError('No refresh token available. Please re-authenticate with consent.', 401);
+
+	// Set credentials (auto refresh enabled)
+	client.setCredentials({
+		access_token: tokens.access_token,
+		refresh_token: refreshToken,
+		expiry_date: tokens.expiry_date ?? existing?.expiryDate,
 	});
 
-	// setup gmail watch
-	await setupGmailWatch(accessToken);
+	// Persist tokens
+	tokenStore.set(userId, {
+		accessToken: tokens.access_token,
+		refreshToken,
+		expiryDate: tokens.expiry_date ?? existing?.expiryDate,
+	});
+
+	// Setup Gmail watch (non-blocking)
+	try {
+		await setupGmailWatch(client);
+	} catch (err: any) {
+		console.error('Gmail watch setup failed:', err?.response?.data || err);
+		// Do NOT throw → user is still authenticated
+	}
+
+	return {
+		success: true,
+		message: 'OAuth successful',
+		watchConfigured: true, // you can toggle this if you want
+	};
 }
 
 /* DESC: Returns user tokens

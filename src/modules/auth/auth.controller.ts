@@ -10,8 +10,9 @@ import * as authService from './auth.service';
  */
 export async function startAuth( req: Request, res: Response, next: NextFunction ){
 	try {
-		const { userId } = req.body;
-		const authUrl = await authService.startAuth(userId);
+		console.log('req.body', req.body);
+		console.log('req.body.userId', req.body.userId);
+		const authUrl = await authService.startAuth(req.body);
 		res.json({ authUrl });
 	} catch (err) {
 		next(err);
