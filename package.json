@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun server.ts",
-    "dev": "bun --watch server.ts"
+    "start": "bun src/server.ts",
+    "dev": "bun --watch src/server.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
