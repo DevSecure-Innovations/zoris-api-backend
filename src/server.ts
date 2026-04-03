@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 /* DESC: Import dotenv, this will inject environment variables
  * without file specific imports 
