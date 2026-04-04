@@ -3,6 +3,7 @@ import type {
 } from '../../types/google';
 import { gmail, oauth2Client } from '../../config/google';
 import { analyzeEmail } from '../../utils/analyzer';
+import { getEmailBodySafe, getEmailSubject } from '../../utils/email';
 import {
 	getLastHistoryId,
 	getTokens,
@@ -14,6 +15,10 @@ import AppError from '../../utils/appError';
 /* DESC: Handles Gmail webhook events 
  */
 export async function gmailWebhook(message: PubSubMessage) {
+	// TODO: remove after dev & testing is done
+	console.log('Gmail webhook triggered');
+	console.log(message);
+
 	if (!message.data) throw new AppError('No data', 400);
 	const parsedData = JSON.parse(Buffer.from(message.data, 'base64').toString()) as {
 		emailAddress?: string;
@@ -61,11 +66,10 @@ export async function gmailWebhook(message: PubSubMessage) {
 			format: 'full',
 		});
 
-		const subject = email.data.payload?.headers?.find(h => h.name === 'Subject')?.value || '';
-		let body = '';
-		if (email.data.payload?.body?.data) {
-			body = Buffer.from(email.data.payload.body.data, 'base64').toString();
-		}
+		const subject = getEmailSubject(email.data.payload);
+		console.log('Subject:', subject); // TODO: remove after dev & testing is done
+		const body = getEmailBodySafe(email.data.payload);
+        console.log('Body:', body); // TODO: remove after dev & testing is done
 
 		const result = await analyzeEmail(subject, body);
 

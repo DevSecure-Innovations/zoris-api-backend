@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { gmail_v1 } from 'googleapis';
 
 export const PubSubMessageSchema = z.object({
     data: z.string().optional(),
@@ -41,3 +42,6 @@ export type StartAuthBody = z.infer<typeof StartAuthBodySchema>;
 export type CallbackBody = z.infer<typeof CallbackBodySchema>;
 export type SafeBrowsingResponse = z.infer<typeof SafeBrowsingResponseSchema>;
 export type GeminiResponse = z.infer<typeof GeminiResponseSchema>;
+export type GmailMessagePart = gmail_v1.Schema$MessagePart;
+export type GmailMessagePartHeader = gmail_v1.Schema$MessagePartHeader;
+export type GmailMessagePartBody = gmail_v1.Schema$MessagePartBody;
