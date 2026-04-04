@@ -4,6 +4,10 @@ import type {
 	NextFunction
 } from 'express';
 import { ZodType } from 'zod';
+import { 
+	CallbackQuerySchema, 
+	type CallbackQuery 
+} from '../types/auth';
 
 /* DESC: Middleware to validate query params 
  * PARAMS: a zod schema
@@ -20,9 +24,11 @@ const queryValidator = <T>(schema: ZodType<T>) =>
 				})),
 			});    
 		}
+
+		if((schema as any) === CallbackQuerySchema) {
+			req.validated = parsed.data as CallbackQuery;
+		}
 		next();
 	}
 
 export default queryValidator;
-
-
