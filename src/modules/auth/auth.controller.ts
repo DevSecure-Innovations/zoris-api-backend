@@ -22,6 +22,21 @@ export async function startAuth( req: Request, res: Response, next: NextFunction
 /* ROUTE: POST /api/auth/gmail/callback
  * DESC: Finish the OAuth flow
  */
+export async function handleGetCallback( req: Request, res: Response, next: NextFunction ){
+	try {
+		await authService.handleGetCallback(req.validated!);
+		res.json({ 
+			success: true, 
+			message: 'Gmail connected & monitoring started' 
+		});
+	} catch (err) {
+		next(err);
+	}
+}
+
+/* ROUTE: POST /api/auth/gmail/callback
+ * DESC: Finish the OAuth flow
+ */
 export async function handleCallback( req: Request, res: Response, next: NextFunction ){
 	try {
 		await authService.handleCallback(req.body);

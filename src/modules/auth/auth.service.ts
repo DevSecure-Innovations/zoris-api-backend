@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { oauth2Client } from "../../config/google";
 import type { 
 	CallbackBody, 
+	CallbackQuery, 
 	StartAuthBody 
 } from "../../types/auth";
 import type { UserTokens } from '../../types/user';
@@ -39,9 +40,19 @@ export async function startAuth(data: StartAuthBody) {
 	});
 }
 
+export async function handleGetCallback(data: CallbackQuery) {
+    if (!data.state) throw new AppError('userId is required', 400);
+    if (!data.code) throw new AppError('code is required', 400);
+
+    const callbackData: CallbackBody = { 
+		code: data.code, 
+		userId: data.state 
+	};
+    await handleCallback(callbackData);
+}
+
 /* DESC: Handles OAuth callback
  */
-
 export async function handleCallback(data: CallbackBody) {
 	if (!data.code) throw new AppError('code is required', 400);
 	if (!data.userId) throw new AppError('userId is required', 400);
