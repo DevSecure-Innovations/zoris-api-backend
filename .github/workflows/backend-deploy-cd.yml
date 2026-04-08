@@ -1,23 +1,23 @@
 name: backend-deploy-cd
 
 on:
-  push:
-    branches: [main]
+  push: 
+   branches : [ main ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v4
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           script: |
-            cd phising-api-backend
-            git pull origin main
+            cd  ~/phising-api-backend
+            git pull -u origin main
             bun install --production
-            pm2 restart phising-api
+            pm2 restart phising-api || pm2 start ecosystem.config.js --env production
