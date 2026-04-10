@@ -20,4 +20,4 @@ jobs:
             cd  ~/phising-api-backend
             git pull -u origin main
             bun install --production
-            pm2 restart phising-api || pm2 start ecosystem.config.js --env production
+            pm2 start ecosystem.config.js --env production || true pm2 save
