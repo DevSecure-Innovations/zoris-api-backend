@@ -8,6 +8,7 @@ import 'dotenv/config';
 
 import authRouter from './modules/auth/auth.routes';
 import webhookRouter from './modules/webhook/webhook.routes';
+import securityRouter from './modules/security/security.routes';
 import { errorHandler } from './middlewares/global.errorHandler';
 
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/webhook', webhookRouter);
+app.use('/security', securityRouter);
 
 app.get('/health', (req, res) => {
     res.status(200).send('Alive');
