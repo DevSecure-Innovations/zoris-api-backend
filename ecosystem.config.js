@@ -1,7 +1,7 @@
 module.exports = {
 	apps: [
 		{
-			name: "phising-api",
+			name: "phishing-api-backend",
 			script: "src/server.ts",         
 			interpreter: "bun",         
 			watch: true,                
