@@ -1,7 +1,7 @@
 module.exports = {
 	apps: [
 		{
-			name: "phishing-api-backend",
+			name: "zoris-backend",
 			script: "src/server.ts",         
 			interpreter: "bun",         
 			watch: true,                

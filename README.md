@@ -1,4 +1,4 @@
-# phish-api-backend
+# Zoris-Backend
 
 To install dependencies:
 
