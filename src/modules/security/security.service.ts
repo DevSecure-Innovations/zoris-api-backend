@@ -4,9 +4,7 @@ import {
 } from "../../config/google";
 
 export async function checkUrl(url: string) {
-	console.log('checkUrl', url);
 	const result = await checkUrlSafety(url);
-	console.log('result', result);
 	return {
 		...result
 	};
