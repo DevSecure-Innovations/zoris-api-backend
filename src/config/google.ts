@@ -47,6 +47,7 @@ async function safeBrowsingRequest(urls: string[]) {
 			},
 		}),
 	});
+	console.log("res: ", res);
 
 	if (!res.ok) {
 		throw new Error("Safe Browsing API request failed");
